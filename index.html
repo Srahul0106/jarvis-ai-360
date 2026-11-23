@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#04101f"><title>JARVIS AI 360</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><span class="brand-icon">◉</span><div><strong>J.A.R.V.I.S.</strong><small>PERSONAL AI 360</small></div></div>
+  <div class="side-heading">COMMAND CENTER</div>
+  <button class="nav active" data-section="dashboard">◈ &nbsp; Dashboard</button>
+  <button class="nav" data-section="assistant">✧ &nbsp; AI Assistant</button>
+  <button class="nav" data-section="commands">⌘ &nbsp; Commands</button>
+  <button class="nav" data-section="settings">⚙ &nbsp; Settings</button>
+  <div class="side-bottom"><span class="status-dot"></span> SYSTEM ONLINE<div class="side-sub">BROWSER EDITION · FREE</div></div>
+</aside>
+<main>
+<header><div><div class="eyebrow">STARK INTERFACE / PERSONAL WORKSPACE</div><h1>JARVIS <span>AI 360</span></h1><p>Your voice-powered command center.</p></div><div class="top-right"><span id="clock"></span><button id="themeBtn" title="Switch theme">☀</button></div></header>
+<section id="dashboard" class="section active">
+  <div class="hero">
+    <div class="hero-top"><span>◉ NEURAL INTERFACE</span><span id="modeBadge">STANDBY</span></div>
+    <div class="orb-wrap"><div class="ring ring-a"></div><div class="ring ring-b"></div><div class="ring ring-c"></div><button id="orb" aria-label="Activate voice assistant"><span class="orb-core"><span class="orb-center">J</span></span></button></div>
+    <div class="hero-caption"><strong id="heroTitle">AWAITING YOUR COMMAND</strong><span id="heroSubtitle">Tap the core to speak, or type your request below</span></div>
+    <div class="hero-controls"><button class="primary" id="voiceBtn">🎙 &nbsp; ACTIVATE VOICE</button><button class="secondary" id="stopBtn">■ &nbsp; STOP</button></div>
+  </div>
+  <div class="metrics"><div class="metric"><span>VOICE SYSTEM</span><strong id="voiceStatus">READY</strong><small>Browser speech recognition</small></div><div class="metric"><span>AI MODE</span><strong id="aiMode">LOCAL COMMANDS</strong><small>Optional external AI backend</small></div><div class="metric"><span>PLATFORM</span><strong>WEB EDITION</strong><small>Desktop + mobile</small></div></div>
+</section>
+<section id="assistant" class="section"><div class="panel"><div class="panel-title">✧ &nbsp; ASSISTANT CONSOLE <span>LIVE SESSION</span></div><div id="messages" class="messages" aria-live="polite"><div class="bubble bot">Hello! Main JARVIS hoon. Ask me the time, date, or tell me to open Google, YouTube, GitHub or Gmail. Full conversational AI requires a separate backend configured in Settings.</div></div></div></section>
+<section id="commands" class="section"><div class="panel"><div class="panel-title">⌘ &nbsp; SUPPORTED COMMANDS <span>QUICK LAUNCH</span></div><div class="command-grid"><button data-command="What time is it?">◷ <b>Current Time</b><small>Ask for time</small></button><button data-command="Aaj ki date kya hai?">▦ <b>Today's Date</b><small>Ask for date</small></button><button data-command="Open Google">◎ <b>Google</b><small>Open search</small></button><button data-command="Open YouTube">▷ <b>YouTube</b><small>Open videos</small></button><button data-command="Open GitHub">⌘ <b>GitHub</b><small>Open GitHub</small></button><button data-command="Open Gmail">✉ <b>Gmail</b><small>Open email</small></button></div></div></section>
+<section id="settings" class="section"><div class="panel settings"><div class="panel-title">⚙ &nbsp; CONFIGURATION <span>YOUR PREFERENCES</span></div><label>Voice reply language<select id="language"><option value="en-IN">English (India)</option><option value="hi-IN" selected>Hindi (India)</option></select></label><label class="check"><input type="checkbox" id="speakToggle" checked> Read replies aloud</label><label>Optional AI backend URL <input id="endpoint" type="url" placeholder="https://your-trusted-server.example/api/chat" autocomplete="off"></label><p class="hint">Use only your own trusted HTTPS, CORS-enabled backend that accepts POST JSON {message} and returns JSON {reply}. Never paste an API key here. GitHub Pages alone cannot run an AI model or control Windows apps. The endpoint is kept only for this browser session.</p><button class="secondary" id="saveSettings">APPLY SETTINGS</button></div></section>
+<div class="composer"><form id="chatForm"><input id="prompt" placeholder="Ask JARVIS anything… e.g. Open YouTube" autocomplete="off" aria-label="Your command"><button type="button" id="mic" title="Speech input">🎙</button><button class="send" type="submit">SEND ➤</button></form><div class="footer-note">JARVIS WEB EDITION · No API key needed for basic commands · Microphone permission needed for voice</div></div>
+</main></div><script src="app.js" defer></script>
+</body></html>
