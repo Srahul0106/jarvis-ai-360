@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
-const state={lang:'hi-IN',speak:true,endpoint:'',recognition:null};
+const state={lang:'hi-IN',speak:true,endpoint:'',recognition:null,local:false,token:'',model:'llama3.2:1b',history:[]};
 function section(name){document.querySelectorAll('.section').forEach(n=>n.classList.toggle('active',n.id===name));document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.section===name));}
 document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>section(n.dataset.section)));
 function tick(){ $('clock').textContent=new Intl.DateTimeFormat('en-IN',{dateStyle:'medium',timeStyle:'short'}).format(new Date());}
@@ -48,7 +48,11 @@ function localAnswer(raw){
 }
 async function handle(input){input=input.trim();if(!input)return;section('assistant');log('user',input);$('prompt').value='';setStatus('PROCESSING');let reply;
  try{
-  if(state.endpoint){
+  if(state.local){
+   const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Jarvis-Token':state.token},body:JSON.stringify({message:input,model:state.model,history:state.history})});
+   const data=await response.json();if(!response.ok)throw new Error(data.error||'Local AI unavailable');
+   reply=data.reply;state.history.push({role:'user',content:input},{role:'assistant',content:reply});state.history=state.history.slice(-10);
+  }else if(state.endpoint){
    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);
    try{const res=await fetch(state.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:input}),signal:controller.signal});if(!res.ok)throw new Error('Backend returned HTTP '+res.status);const data=await res.json();if(typeof data.reply!=='string')throw new Error('Backend response missing reply');reply=data.reply;}
    finally{clearTimeout(timeout);}
@@ -58,3 +62,31 @@ async function handle(input){input=input.trim();if(!input)return;section('assist
 $('chatForm').addEventListener('submit',e=>{e.preventDefault();handle($('prompt').value);});
 document.querySelectorAll('[data-command]').forEach(b=>b.addEventListener('click',()=>handle(b.dataset.command)));
 $('saveSettings').addEventListener('click',()=>{state.lang=$('language').value;state.speak=$('speakToggle').checked;const url=$('endpoint').value.trim();if(url&&!/^https:\/\//i.test(url)){log('bot','Please use an HTTPS AI backend URL.');section('assistant');return;}state.endpoint=url;$('aiMode').textContent=url?'AI BACKEND':'LOCAL COMMANDS';log('bot','Settings applied for this session.');section('assistant');});
+
+/* Full Windows companion integration — token held in page memory only */
+$('connectLocal').addEventListener('click',async()=>{
+ const token=$('pairToken').value.trim();
+ if(!token){$('localStatus').textContent='पहले pairing token डालें';return;}
+ try{
+  const res=await fetch('/api/models',{headers:{'X-Jarvis-Token':token}});
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||'Connection failed');
+  state.local=true;state.token=token;
+  const models=data.models||[];const select=$('modelSelect');select.replaceChildren();
+  for(const model of models){const option=document.createElement('option');option.value=model;option.textContent=model;select.appendChild(option);}
+  if(!models.length){state.local=false;throw new Error('No Ollama model installed. Run: ollama pull llama3.2:1b');}
+  state.model=select.value;
+  $('localStatus').textContent='🟢 Ollama connected';$('aiMode').textContent='OLLAMA: '+state.model;
+ }catch(e){state.local=false;$('localStatus').textContent='🔴 '+e.message;}
+});
+$('modelSelect').addEventListener('change',e=>{state.model=e.target.value;$('aiMode').textContent='OLLAMA: '+state.model;});
+document.querySelectorAll('[data-pc]').forEach(button=>button.addEventListener('click',async()=>{
+ const action=button.dataset.pc;
+ if(!state.local){alert('पहले Settings में Local AI connect करें।');return;}
+ if(!confirm('क्या आप अपने Windows PC पर '+action+' खोलना चाहते हैं?'))return;
+ try{
+  const res=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json','X-Jarvis-Token':state.token},body:JSON.stringify({action})});
+  const data=await res.json();if(!res.ok)throw new Error(data.error);
+  log('bot','आपकी अनुमति से '+action+' खोला गया।');section('assistant');
+ }catch(e){alert('PC action failed: '+e.message);}
+}));
