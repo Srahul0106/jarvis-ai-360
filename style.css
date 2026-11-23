@@ -24,3 +24,5 @@
 #orb .blush{top:49px}
 #orb .smile{top:51px;left:32px}
 #orb .avatar-bow{top:19px;right:24px}
+
+.local-setup{padding:18px;border:1px solid var(--border);border-radius:12px;margin-top:20px;background:rgba(25,124,153,.1)}.local-setup p{color:var(--muted);font-size:12px}.local-setup input,.local-setup select{width:100%;padding:11px;background:var(--card);color:var(--ink);border:1px solid var(--border);border-radius:7px}.local-setup button{margin:12px 10px 12px 0}.local-setup #localStatus{font-size:12px;color:var(--accent)}
