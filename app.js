@@ -9,20 +9,30 @@ $('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('ligh
 function log(kind,text){const el=document.createElement('div');el.className='bubble '+kind;el.textContent=text;$('messages').appendChild(el);$('messages').scrollTop=$('messages').scrollHeight;}
 function speak(text){if(!state.speak||!('speechSynthesis' in window))return;speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang=state.lang;utter.rate=1;speechSynthesis.speak(utter);}
 function setStatus(v){$('modeBadge').textContent=v;$('heroTitle').textContent=v==='LISTENING'?'LISTENING TO YOU':v==='PROCESSING'?'PROCESSING COMMAND':'AWAITING YOUR COMMAND';document.body.classList.toggle('listening',v==='LISTENING');}
+function resetVoiceUI(){setStatus('STANDBY');$('voiceStatus').textContent='READY';}
 function startVoice(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){const msg='Speech recognition is unavailable in this browser. Try Chrome or Edge and grant microphone permission, or use the text input.';log('bot',msg);section('assistant');return;}
+ if(!SR){log('bot','Voice input is not supported here. Try an updated Chrome or Edge browser, or type your command.');section('assistant');return;}
+ if(state.recognition){return;} // Avoid aborting a running session by repeatedly tapping the microphone
+ if('speechSynthesis' in window)speechSynthesis.cancel();
  try{
-  if(state.recognition){state.recognition.stop();state.recognition=null;}
-  const rec=new SR();state.recognition=rec;rec.lang=state.lang;rec.interimResults=false;rec.maxAlternatives=1;
-  rec.onstart=()=>{setStatus('LISTENING');$('voiceStatus').textContent='LISTENING';};
-  rec.onresult=e=>{const input=e.results[0][0].transcript;handle(input);};
-  rec.onerror=e=>{setStatus('STANDBY');$('voiceStatus').textContent='READY';log('bot','Voice error: '+e.error+'. Check microphone permission and browser support.');section('assistant');};
-  rec.onend=()=>{setStatus('STANDBY');$('voiceStatus').textContent='READY';state.recognition=null;};
+  const rec=new SR();state.recognition=rec;rec.lang=state.lang;rec.interimResults=false;rec.continuous=false;rec.maxAlternatives=1;
+  let received=false;let manuallyStopped=false;
+  rec.onstart=()=>{if(state.recognition===rec){setStatus('LISTENING');$('voiceStatus').textContent='LISTENING';}};
+  rec.onresult=e=>{if(state.recognition!==rec)return;received=true;const input=e.results[0][0].transcript;handle(input);};
+  rec.onerror=e=>{
+   if(state.recognition!==rec)return;
+   if(e.error==='aborted'&&manuallyStopped)return;
+   if(e.error==='aborted')return; // Browser cancellation is not necessarily a microphone permission failure
+   const hints={'not-allowed':'Microphone permission was denied. Allow it in the browser site settings.','service-not-allowed':'Speech recognition service is unavailable or blocked.','audio-capture':'No working microphone was found. Check Windows microphone settings.','network':'Speech recognition network service failed. Check your connection.','no-speech':'No speech was detected. Please try again.','language-not-supported':'Selected speech language is not supported. Try English (India).'};
+   log('bot','Voice input: '+(hints[e.error]||'Recognition failed ('+e.error+'). Please try again.'));section('assistant');
+  };
+  rec.onend=()=>{if(state.recognition!==rec)return;state.recognition=null;if(!received)resetVoiceUI();else $('voiceStatus').textContent='READY';};
+  rec._stopSafely=()=>{manuallyStopped=true;rec.abort();};
   rec.start();
- }catch(e){setStatus('STANDBY');log('bot','Could not start microphone: '+e.message);}
+ }catch(e){state.recognition=null;resetVoiceUI();log('bot','Could not start voice input: '+e.message);section('assistant');}
 }
-function stopVoice(){if(state.recognition){state.recognition.abort();state.recognition=null;}if('speechSynthesis' in window)speechSynthesis.cancel();setStatus('STANDBY');$('voiceStatus').textContent='READY';}
+function stopVoice(){const rec=state.recognition;state.recognition=null;if(rec){try{rec._stopSafely();}catch(e){}}if('speechSynthesis' in window)speechSynthesis.cancel();resetVoiceUI();}
 $('orb').addEventListener('click',startVoice);$('voiceBtn').addEventListener('click',startVoice);$('mic').addEventListener('click',startVoice);$('stopBtn').addEventListener('click',stopVoice);
 function localAnswer(raw){
  const q=raw.toLowerCase().trim();
