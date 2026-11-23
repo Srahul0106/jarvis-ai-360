@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#04101f"><title>JARVIS AI 360</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=avatar3">
 </head>
 <body>
 <div class="shell">
@@ -31,5 +31,5 @@
 <section id="commands" class="section"><div class="panel"><div class="panel-title">⌘ &nbsp; हिंदी कमांड्स <span>QUICK LAUNCH</span></div><div class="command-grid"><button data-command="अभी कितने बजे हैं?">◷ <b>समय बताओ</b><small>Ask for time</small></button><button data-command="आज की तारीख क्या है?">▦ <b>आज की तारीख</b><small>Ask for date</small></button><button data-command="गूगल खोलो">◎ <b>गूगल खोलो</b><small>Open search</small></button><button data-command="यूट्यूब खोलो">▷ <b>यूट्यूब खोलो</b><small>Open videos</small></button><button data-command="गिटहब खोलो">⌘ <b>गिटहब खोलो</b><small>Open GitHub</small></button><button data-command="जीमेल खोलो">✉ <b>जीमेल खोलो</b><small>Open email</small></button></div></div></section>
 <section id="settings" class="section"><div class="panel settings"><div class="panel-title">⚙ &nbsp; सेटिंग्स <span>YOUR PREFERENCES</span></div><label>बोलने की भाषा<select id="language"><option value="en-IN">English (India)</option><option value="hi-IN" selected>Hindi (India)</option></select></label><label class="check"><input type="checkbox" id="speakToggle" checked> जवाब बोलकर सुनाएँ</label><label>वैकल्पिक AI सर्वर URL <input id="endpoint" type="url" placeholder="https://your-trusted-server.example/api/chat" autocomplete="off"></label><p class="hint">Use only your own trusted HTTPS, CORS-enabled backend that accepts POST JSON {message} and returns JSON {reply}. Never paste an API key here. GitHub Pages alone cannot run an AI model or control Windows apps. The endpoint is kept only for this browser session.</p><button class="secondary" id="saveSettings">सेटिंग्स सेव करें</button></div></section>
 <div class="composer"><form id="chatForm"><input id="prompt" placeholder="जार्विस से हिंदी में पूछें… जैसे यूट्यूब खोलो" autocomplete="off" aria-label="Your command"><button type="button" id="mic" title="Speech input">🎙</button><button class="send" type="submit">भेजें ➤</button></form><div class="footer-note">JARVIS WEB EDITION · No API key needed for basic commands · Microphone permission needed for voice</div></div>
-</main></div><script src="app.js" defer></script>
+</main></div><script src="app.js?v=avatar3" defer></script>
 </body></html>
