@@ -90,3 +90,5 @@ document.querySelectorAll('[data-pc]').forEach(button=>button.addEventListener('
   log('bot','आपकी अनुमति से '+action+' खोला गया।');section('assistant');
  }catch(e){alert('PC action failed: '+e.message);}
 }));
+
+document.querySelectorAll('[data-go-settings]').forEach(b=>b.addEventListener('click',()=>section('settings')));
