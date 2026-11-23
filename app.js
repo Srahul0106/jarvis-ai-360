@@ -7,8 +7,8 @@ function tick(){ $('clock').textContent=new Intl.DateTimeFormat('en-IN',{dateSty
 tick();setInterval(tick,30000);
 $('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('light');$('themeBtn').textContent=document.body.classList.contains('light')?'☾':'☀';});
 function log(kind,text){const el=document.createElement('div');el.className='bubble '+kind;el.textContent=text;$('messages').appendChild(el);$('messages').scrollTop=$('messages').scrollHeight;}
-function speak(text){if(!state.speak||!('speechSynthesis' in window))return;speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang=state.lang;utter.rate=1;speechSynthesis.speak(utter);}
-function setStatus(v){$('modeBadge').textContent=v;$('heroTitle').textContent=v==='LISTENING'?'LISTENING TO YOU':v==='PROCESSING'?'PROCESSING COMMAND':'AWAITING YOUR COMMAND';document.body.classList.toggle('listening',v==='LISTENING');}
+function speak(text){if(!state.speak||!('speechSynthesis' in window))return;speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang=state.lang;utter.rate=.95;const voices=speechSynthesis.getVoices();const hindi=voices.find(v=>v.lang.toLowerCase().startsWith('hi')&&/female|swara|kalpana/i.test(v.name))||voices.find(v=>v.lang.toLowerCase().startsWith('hi'));if(hindi&&state.lang==='hi-IN')utter.voice=hindi;speechSynthesis.speak(utter);}
+function setStatus(v){$('modeBadge').textContent=v;$('heroTitle').textContent=v==='LISTENING'?'मैं सुन रही हूँ…':v==='PROCESSING'?'जवाब तैयार कर रही हूँ…':'नमस्ते! मुझसे बात करें';document.body.classList.toggle('listening',v==='LISTENING');}
 function resetVoiceUI(){setStatus('STANDBY');$('voiceStatus').textContent='READY';}
 function startVoice(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -25,7 +25,7 @@ function startVoice(){
    if(e.error==='aborted'&&manuallyStopped)return;
    if(e.error==='aborted')return; // Browser cancellation is not necessarily a microphone permission failure
    const hints={'not-allowed':'Microphone permission was denied. Allow it in the browser site settings.','service-not-allowed':'Speech recognition service is unavailable or blocked.','audio-capture':'No working microphone was found. Check Windows microphone settings.','network':'Speech recognition network service failed. Check your connection.','no-speech':'No speech was detected. Please try again.','language-not-supported':'Selected speech language is not supported. Try English (India).'};
-   log('bot','Voice input: '+(hints[e.error]||'Recognition failed ('+e.error+'). Please try again.'));section('assistant');
+   log('bot','वॉइस इनपुट: '+(hints[e.error]||'समस्या ('+e.error+'). दोबारा कोशिश करें।'));section('assistant');
   };
   rec.onend=()=>{if(state.recognition!==rec)return;state.recognition=null;if(!received)resetVoiceUI();else $('voiceStatus').textContent='READY';};
   rec._stopSafely=()=>{manuallyStopped=true;rec.abort();};
@@ -36,13 +36,15 @@ function stopVoice(){const rec=state.recognition;state.recognition=null;if(rec){
 $('orb').addEventListener('click',startVoice);$('voiceBtn').addEventListener('click',startVoice);$('mic').addEventListener('click',startVoice);$('stopBtn').addEventListener('click',stopVoice);
 function localAnswer(raw){
  const q=raw.toLowerCase().trim();
- if(/\b(time|samay|kitne baje|kitna baja)\b/.test(q))return 'It is '+new Intl.DateTimeFormat('en-IN',{timeStyle:'medium'}).format(new Date())+'.';
- if(/\b(date|today|tarikh|tareekh|aaj)\b/.test(q))return 'Today is '+new Intl.DateTimeFormat('en-IN',{dateStyle:'full'}).format(new Date())+'.';
- if(/\b(hello|hi|hey|namaste|jarvis)\b/.test(q))return 'Namaste! Main JARVIS hoon. Aap mujhe time, date ya website open karne ko keh sakte hain.';
- const sites=[['youtube','https://www.youtube.com'],['google','https://www.google.com'],['github','https://github.com'],['gmail','https://mail.google.com']];
- const match=sites.find(([name])=>q.includes(name)&&/\b(open|kholo|khol|launch|start)\b/.test(q));
- if(match){const win=window.open(match[1],'_blank','noopener,noreferrer');return win?'Opening '+match[0]+'.':'Browser ne popup block kiya ho sakta hai. Please allow popups for this site.';}
- return 'This is the free browser-command edition. I can handle time, date and opening Google, YouTube, GitHub or Gmail. Full AI chat requires connecting a trusted backend under Settings.';
+ const has=(...words)=>words.some(w=>q.includes(w));
+ if(has('समय','बजे','टाइम','time','samay','kitne baje'))return 'अभी '+new Intl.DateTimeFormat('hi-IN',{timeStyle:'short'}).format(new Date())+' बजे हैं।';
+ if(has('तारीख','दिनांक','आज कौन सा दिन','date','today','tarikh','aaj ki date'))return 'आज '+new Intl.DateTimeFormat('hi-IN',{dateStyle:'full'}).format(new Date())+' है।';
+ const sites=[{names:['यूट्यूब','youtube'],url:'https://www.youtube.com',label:'यूट्यूब'},{names:['गूगल','google'],url:'https://www.google.com',label:'गूगल'},{names:['गिटहब','github'],url:'https://github.com',label:'गिटहब'},{names:['जीमेल','gmail','मेल'],url:'https://mail.google.com',label:'जीमेल'}];
+ const site=sites.find(s=>s.names.some(n=>q.includes(n)));
+ if(site&&has('खोल','चालू','चलाओ','open','launch','start','kholo','khol')){const tab=window.open(site.url,'_blank');if(tab)tab.opener=null;return tab?site.label+' खोल दिया है।':'ब्राउज़र ने नई टैब रोकी हो सकती है। कृपया पॉपअप की अनुमति दें।';}
+ if(has('जार्विस','जारविस','jarvis','नमस्ते','हेलो','hello','hi','hey'))return 'नमस्ते! मैं आपकी प्यारी जार्विस हूँ। 💙 बताइए, मैं आपकी क्या मदद करूँ?';
+ if(has('क्या कर सकती','help','मदद','कमांड'))return 'मैं समय और तारीख बता सकती हूँ और गूगल, यूट्यूब, गिटहब या जीमेल खोल सकती हूँ। सामान्य AI सवालों के लिए अलग AI सर्वर चाहिए।';
+ return 'माफ़ कीजिए, अभी मेरे पास केवल कुछ बेसिक हिंदी कमांड्स हैं। आप समय, तारीख पूछें या यूट्यूब खोलो कहें। पूरी AI बातचीत के लिए AI सर्वर जोड़ना होगा।';
 }
 async function handle(input){input=input.trim();if(!input)return;section('assistant');log('user',input);$('prompt').value='';setStatus('PROCESSING');let reply;
  try{
